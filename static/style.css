@@ -1,0 +1,164 @@
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to right, #2c3e50, #3498db);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.login-container {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 10px;
+    width: 350px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.login-container h2 {
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+.login-container input[type="text"],
+.login-container input[type="password"] {
+    width: 90%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+    transition: border 0.3s ease;
+}
+
+.login-container input[type="text"]:focus,
+.login-container input[type="password"]:focus {
+    border-color: #3498db;
+}
+
+.login-container button {
+    width: 95%;
+    padding: 0.8rem;
+    background-color: #3498db;
+    border: none;
+    color: #fff;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.login-container button:hover {
+    background-color: #2980b9;
+}
+
+.flash {
+    margin-bottom: 1rem;
+}
+
+.flash p {
+    padding: 0.5rem;
+    color: #e74c3c;
+    background: #fceae9;
+    border-radius: 5px;
+}
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f7f7f7;
+    color: #333;
+    text-align: center;
+    margin-top: 50px;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+    padding: 30px;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+nav ul li {
+    margin: 15px 0;
+}
+
+nav ul li a {
+    text-decoration: none;
+    font-size: 18px;
+    color: #007bff;
+    transition: 0.2s;
+}
+
+nav ul li a:hover {
+    color: #0056b3;
+}
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(to right, #f5f7fa, #c3cfe2);
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 900px;
+    margin: 60px auto;
+    padding: 40px;
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0px 12px 24px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+p {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+nav ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 0;
+    list-style: none;
+    margin: 0;
+}
+
+nav ul li {
+    background-color: #f0f0f0;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+nav ul li:hover {
+    background-color: #d0e6fd;
+    transform: translateY(-5px);
+}
+
+nav ul li a {
+    display: block;
+    padding: 20px;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 500;
+    color: #333;
+}
+
+nav ul li a:hover {
+    color: #1d4ed8;
+}
