@@ -16,6 +16,7 @@ Data Storage: Integrates SQL for persistent storage of license plate records.
 🛠️ Technologies Used
 
 Hardware: ESP32-CAM microcontroller
+
 Programming Languages:
 
 C++ (for ESP32-CAM firmware)
@@ -35,8 +36,11 @@ SQL workbench (database)
 Communication: Wi-Fi for real-time data transfer between ESP32-CAM and Flask server
 
 📋 System Architecture
+
 ESP32-CAM: Captures images and performs initial processing (e.g., grayscale conversion, edge detection).
 
 Image Transmission: Sends processed images to the Flask server over Wi-Fi.
+
 Flask Server: Uses OpenCV and Tesseract OCR to extract license plate numbers and store them in SQLite.
+
 Web Interface: Displays detected plates and allows users to manage records (view, edit, delete).
