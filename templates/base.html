@@ -1,0 +1,48 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title or 'Dashboard' }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        /* Optional: add responsiveness and padding */
+        .main-content {
+            padding: 20px;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="logo">H</div>
+            <ul class="menu">
+                <li><a href="{{ url_for('camera') }}"><i class="fas fa-video"></i> Camera</a></li>
+                <li><a href="{{ url_for('account') }}"><i class="fas fa-user"></i> Account</a></li>
+                <li><a href="{{ url_for('edit_profile') }}"><i class="fas fa-edit"></i> Edit Profile</a></li>
+                <li><a href="{{ url_for('logout') }}"><i class="fas fa-power-off"></i> Logout</a></li>
+            </ul>
+            <p>Logged in as: {{ current_user.username }}</p>
+        </aside>
+
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</body>
+</html>

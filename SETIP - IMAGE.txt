@@ -1,0 +1,99 @@
+#include <WebServer.h>
+#include <WiFi.h>
+#include <esp32cam.h>
+
+const char* WIFI_SSID = "Suck my data";
+const char* WIFI_PASS = "cykablyat";
+
+WebServer server(80);
+
+// Define resolutions
+static auto loRes = esp32cam::Resolution::find(320, 240);
+static auto midRes = esp32cam::Resolution::find(640, 480);
+static auto hiRes = esp32cam::Resolution::find(800, 600);
+static auto hiRes2 = esp32cam::Resolution::find(1600, 1200);  // Added higher resolution
+
+void serveJpg() {
+  auto frame = esp32cam::capture();
+  if (frame == nullptr) {
+    Serial.println("CAPTURE FAIL");
+    server.send(503, "", "");
+    return;
+  }
+  Serial.printf("CAPTURE OK %dx%d %db\n", frame->getWidth(), frame->getHeight(),
+                static_cast<int>(frame->size()));
+
+  server.setContentLength(frame->size());
+  server.send(200, "image/jpeg");
+  WiFiClient client = server.client();
+  frame->writeTo(client);
+}
+
+void handleJpgLo() {
+  if (!esp32cam::Camera.changeResolution(loRes)) {
+    Serial.println("SET-LO-RES FAIL");
+  }
+  serveJpg();
+}
+
+void handleJpgMid() {
+  if (!esp32cam::Camera.changeResolution(midRes)) {
+    Serial.println("SET-MID-RES FAIL");
+  }
+  serveJpg();
+}
+
+void handleJpgHi() {
+  if (!esp32cam::Camera.changeResolution(hiRes)) {
+    Serial.println("SET-HI-RES FAIL");
+  }
+  serveJpg();
+}
+
+void handleJpgHi2() {
+  if (!esp32cam::Camera.changeResolution(hiRes2)) {
+    Serial.println("SET-HI-RES-2 FAIL");
+  }
+  serveJpg();
+}
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println();
+  {
+    using namespace esp32cam;
+    Config cfg;
+    cfg.setPins(pins::AiThinker);
+    cfg.setResolution(hiRes2);  // Set to higher resolution by default
+    cfg.setBufferCount(3);  // Increased buffer count
+    cfg.setJpeg(90);  // Increased JPEG quality for better image clarity
+
+    bool ok = Camera.begin(cfg);
+    Serial.println(ok ? "CAMERA OK" : "CAMERA FAIL");
+  }
+  
+  WiFi.persistent(false);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+  }
+  
+  Serial.print("http://");
+  Serial.println(WiFi.localIP());
+  Serial.println("  /cam-lo.jpg");
+  Serial.println("  /cam-mid.jpg");
+  Serial.println("  /cam-hi.jpg");
+  Serial.println("  /cam-hi2.jpg");  // New high-resolution endpoint
+
+  server.on("/cam-lo.jpg", handleJpgLo);
+  server.on("/cam-mid.jpg", handleJpgMid);
+  server.on("/cam-hi.jpg", handleJpgHi);
+  server.on("/cam-hi2.jpg", handleJpgHi2);  // Added high-resolution route
+
+  server.begin();
+}
+
+void loop() {
+  server.handleClient();
+}

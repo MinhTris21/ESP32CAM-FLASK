@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Camera Stream</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <!-- Use the latest Font Awesome CSS CDN for reliability -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    #registrationModal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      background: white;
+      padding: 20px;
+      border: 1px solid #ccc;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 10px;
+      box-shadow: 0px 0px 15px rgba(0,0,0,0.2);
+    }
+    #registrationModal input {
+      margin-bottom: 10px;
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+    #registrationModal button {
+      margin-top: 10px;
+    }
+
+    /* Ensure sidebar icons are visible */
+    .nav a i {
+      font-size: 1.2rem;
+      margin-right: 0.5rem;
+      color: #ddd !important; /* Light grey for visibility against dark background */
+    }
+
+    .nav a.active i {
+      color: #fff !important; /* White for active state */
+    }
+
+    .nav a:hover i {
+      color: #fff !important; /* White on hover */
+    }
+
+    /* Flash message styling */
+    .flash-messages {
+      width: 100%;
+      max-width: 960px;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .flash-message {
+      padding: 0.75rem;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+      color: white;
+    }
+
+    .flash-message.success {
+      background-color: #28a745; /* Green for success */
+    }
+
+    .flash-message.danger {
+      background-color: #dc3545; /* Red for error */
+    }
+  </style>
+</head>
+<body>
+<script>
+  function startStream() {
+    document.getElementById("video-stream").src = "/video_feed";
+  }
+
+  function stopStream() {
+    document.getElementById("video-stream").src = "/static/no_stream.png";
+  }
+
+  function capturePlate() {
+    fetch('/capture_plate')
+      .then(response => response.json())
+      .then(data => {
+        const plate = data.plate;
+        if (plate && plate !== "unknown") {
+          document.getElementById('license_plate').value = plate;
+          document.getElementById('registrationModal').style.display = 'block';
+        } else {
+          alert("No plate detected.");
+        }
+      })
+      .catch(error => {
+        console.error("Error capturing plate:", error);
+      });
+  }
+</script>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">Dashboard</div>
+    <nav class="nav">
+      <a href="/camera" class="active"><i class="fas fa-camera"></i> Camera</a>
+      <a href="/account"><i class="fas fa-user-circle"></i> Account</a>
+      <a href="/edit_profile"><i class="fas fa-user-edit"></i> Edit Profile</a>
+      <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </nav>
+    <div class="footer">Welcome, {{ current_user.username }}!</div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main-content">
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="flash-message {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="camera-container">
+      {% if not streaming %}
+        <img src="{{ url_for('static', filename='no_stream.png') }}" class="placeholder" alt="Stream unavailable">
+      {% else %}
+        <img id="video-stream" src="{{ url_for('static', filename='no_stream.png') }}" class="placeholder" alt="Camera Feed">
+      {% endif %}
+    </div>
+
+    <div class="button-bar">
+      <button class="btn btn-green" onclick="startStream()">▶ Start Stream</button>
+      <button class="btn btn-blue" onclick="capturePlate()">📸 Capture License Plate</button>
+      <button class="btn btn-red" onclick="stopStream()">Stop Stream</button>
+    </div>
+  </main>
+</div>
+
+<!-- Modal for Plate Registration -->
+<div id="registrationModal">
+  <h3>Register License Plate</h3>
+  <form method="POST" action="/register_plate">
+    <label>Plate:</label><br>
+    <input type="text" id="license_plate" name="license_plate" value="{{ latest_plate }}" readonly><br>
+
+    <label>Your Name:</label><br>
+    <input type="text" name="name" value="{{ current_user.username }}" readonly required><br>
+
+    <label>Your Email:</label><br>
+    <input type="email" name="email" value="{{ current_user.email }}" readonly required><br>
+
+    <label>Your Phone:</label><br>
+    <input type="text" name="phone" value="{{ current_user.phone }}" readonly required><br>
+
+    <button type="submit">Submit Registration</button>
+    <button type="button" onclick="document.getElementById('registrationModal').style.display='none'">Cancel</button>
+  </form>
+</div>
+
+</body>
+</html>

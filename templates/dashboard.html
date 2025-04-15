@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome, {{ current_user.username }}!</h1>
+        <p>Logged in as: {{ current_user.role }}</p>
+
+        <nav>
+            <ul>
+                <li><a href="/camera">Plate Detection</a></li>
+                <li><a href="/register-vehicle">Register Vehicle</a></li>
+                <li><a href="/edit_profile">👤 Edit Profile</a></li>
+                {% if session['role'] == 'admin' %}
+                <li><a href="/review-requests">Review Requests</a></li>
+                {% endif %}
+                <li><a href="/logout">Logout</a></li>
+            </ul>
+        </nav>
+    </div>
+</body>
+</html>
