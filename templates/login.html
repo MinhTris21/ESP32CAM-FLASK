@@ -3,25 +3,271 @@
 <head>
     <meta charset="UTF-8">
     <title>Login | Plate Detection System</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f2f4f8;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 450px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .login-header {
+            background: #007bff;
+            padding: 1.5rem;
+            text-align: center;
+            color: white;
+        }
+
+        .login-header h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .login-header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .login-section {
+            padding: 2rem;
+        }
+
+        .login-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .login-tabs button {
+            background: none;
+            border: none;
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            color: #888;
+            font-weight: bold;
+        }
+
+        .login-tabs button.active {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+        }
+
+        .login-container {
+            margin-bottom: 2rem;
+        }
+
+        .login-container .input-group {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .login-container input[type="text"],
+        .login-container input[type="password"] {
+            width: 100%;
+            padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            outline: none;
+            font-size: 1rem;
+            box-sizing: border-box;
+            background: #f9f9f9;
+        }
+
+        .login-container .input-group i {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+            font-size: 1rem;
+        }
+
+        .login-container .options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .login-container .options label {
+            display: flex;
+            align-items: center;
+            color: #666;
+        }
+
+        .login-container .options input[type="checkbox"] {
+            margin-right: 0.5rem;
+        }
+
+        .login-container .options a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .login-container .options a:hover {
+            text-decoration: underline;
+        }
+
+        .login-container button {
+            width: 100%;
+            padding: 0.75rem;
+            background: #007bff;
+            border: none;
+            border-radius: 50px;
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .login-container button i {
+            margin-left: 0.5rem;
+        }
+
+        .login-container button:hover {
+            background: #0056b3;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .register-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        .flash {
+            margin-bottom: 1rem;
+        }
+
+        .flash p {
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            color: white;
+            text-align: center;
+        }
+
+        .flash p.success {
+            background-color: #28a745;
+        }
+
+        .flash p.danger {
+            background-color: #dc3545;
+        }
+    </style>
+    <script>
+        function toggleLogin(role) {
+            document.getElementById('user-login').style.display = role === 'user' ? 'block' : 'none';
+            document.getElementById('admin-login').style.display = role === 'admin' ? 'block' : 'none';
+            document.getElementById('user-tab').classList.toggle('active', role === 'user');
+            document.getElementById('admin-tab').classList.toggle('active', role === 'admin');
+        }
+    </script>
 </head>
 <body>
-    <div class="login-container">
-        <h2>Login</h2>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="flash">
-                    {% for category, message in messages %}
-                        <p class="{{ category }}">{{ message }}</p>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-        <form action="{{ url_for('login') }}" method="POST">
-            <input type="text" name="username" placeholder="Username" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <button type="submit">Login</button>
-        </form>
+    <div class="login-wrapper">
+        <div class="login-header">
+            <h2>Login</h2>
+            <p>Hello there, Sign in to continue</p>
+        </div>
+
+        <div class="login-section">
+
+            <!-- Toggle Tabs -->
+            <div class="login-tabs">
+                <button id="user-tab" class="active" onclick="toggleLogin('user')">User Login</button>
+                <button id="admin-tab" onclick="toggleLogin('admin')">Admin Login</button>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash">
+                        {% for category, message in messages %}
+                            <p class="{{ category }}">{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- User Login -->
+            <div id="user-login" class="login-container" style="display: block;">
+                <form action="{{ url_for('login') }}" method="POST">
+                    <input type="hidden" name="role" value="user">
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="username" placeholder="Username" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" name="password" placeholder="Password" required>
+                    </div>
+                    <div class="options">
+                        <label>
+                            <input type="checkbox" name="remember"> Remember Me
+                        </label>
+                        <a href="{{ url_for('forgot_password') }}">Forgot Password?</a>
+                    </div>
+                    <button type="submit">Login <i class="fas fa-arrow-right"></i></button>
+                </form>
+            </div>
+
+            <!-- Admin Login -->
+            <div id="admin-login" class="login-container" style="display: none;">
+                <form action="{{ url_for('login') }}" method="POST">
+                    <input type="hidden" name="role" value="admin">
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="username" placeholder="Username" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" name="password" placeholder="Password" required>
+                    </div>
+                    <div class="options">
+                        <label>
+                            <input type="checkbox" name="remember"> Remember Me
+                        </label>
+                        <a href="{{ url_for('forgot_password') }}">Forgot Password?</a>
+                    </div>
+                    <button type="submit">Login <i class="fas fa-arrow-right"></i></button>
+                </form>
+            </div>
+
+            <!-- Register Link -->
+            <div class="register-link">
+                <p>Don't have an account? <a href="{{ url_for('register') }}">Register</a></p>
+            </div>
+        </div>
     </div>
 </body>
 </html>

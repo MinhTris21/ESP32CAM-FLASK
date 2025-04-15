@@ -29,6 +29,7 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
 # User class for session
+# User class for Flask-Login
 class User(UserMixin):
     def __init__(self, id, username, name, email, phone, role):
         self.id = id
@@ -58,6 +59,8 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password_input = request.form['password']
+        selected_role = request.form['role']
+        remember = 'remember' in request.form  # Check if "Remember Me" is checked
 
         cur = mysql.connection.cursor()
         # Fetch all necessary fields for the User constructor
@@ -66,11 +69,20 @@ def login():
         cur.close()
 
         if user and check_password_hash(user[6], password_input):
+            # Check if the selected role matches the user's actual role
+            if user[5] != selected_role:
+                flash(f'Role mismatch: You are not an {selected_role}', 'danger')
+                return redirect(url_for('login'))
             # Pass all required arguments to User
-            login_user(User(user[0], user[1], user[2], user[3], user[4], user[5]))
+            user_obj = User(user[0], user[1], user[2], user[3], user[4], user[5])
+            login_user(user_obj, remember=remember)
+            flash('Login successful!', 'success')
+            if user[5] == 'admin':
+                return redirect(url_for('admin_dashboard'))
             return redirect(url_for('camera'))
         else:
             flash("Invalid username or password", "danger")
+            return redirect(url_for('login'))
 
     return render_template('login.html')
 
@@ -186,6 +198,96 @@ def register_plate():
         print(f"[ERROR] During registration: {str(e)}")
         flash("Registration failed", "danger")
         return "Registration failed", 500
+
+@app.route('/forgot_password')
+def forgot_password():
+    flash('Forgot Password functionality is not yet implemented.', 'danger')
+    return redirect(url_for('login'))
+
+@app.route('/register')
+def register():
+    flash('Registration functionality is not yet implemented.', 'danger')
+    return redirect(url_for('login'))
+
+# Admin dashboard route
+@app.route('/admin_dashboard')
+@login_required
+def admin_dashboard():
+    if current_user.role != 'admin':
+        flash('Access denied: Admins only', 'danger')
+        return redirect(url_for('camera'))
+
+    cursor = mysql.connection.cursor()
+    cursor.execute("""
+        SELECT id, user_id, license_plate, captured_at, name, email, phone, status 
+        FROM registrations
+    """)
+    registrations = cursor.fetchall()
+    cursor.close()
+
+    # Convert tuple to dict for easier template access
+    registrations_list = [
+        {
+            'id': reg[0],
+            'user_id': reg[1],
+            'license_plate': reg[2],
+            'captured_at': reg[3],
+            'name': reg[4],
+            'email': reg[5],
+            'phone': reg[6],
+            'status': reg[7]
+        }
+        for reg in registrations
+    ]
+
+    return render_template('admin_dashboard.html', registrations=registrations_list)
+
+# Approve plate route
+@app.route('/approve_plate/<int:registration_id>', methods=['POST'])
+@login_required
+def approve_plate(registration_id):
+    if current_user.role != 'admin':
+        flash('Access denied: Admins only', 'danger')
+        return redirect(url_for('camera'))
+
+    try:
+        cursor = mysql.connection.cursor()
+        cursor.execute(
+            "UPDATE registrations SET status = 'approved' WHERE id = %s",
+            (registration_id,)
+        )
+        mysql.connection.commit()
+        cursor.close()
+        flash('Plate approved successfully', 'success')
+    except Exception as e:
+        print(f"[ERROR] Approving plate: {str(e)}")
+        flash('Failed to approve plate', 'danger')
+
+    return redirect(url_for('admin_dashboard'))
+
+# Deny plate route
+@app.route('/deny_plate/<int:registration_id>', methods=['POST'])
+@login_required
+def deny_plate(registration_id):
+    if current_user.role != 'admin':
+        flash('Access denied: Admins only', 'danger')
+        return redirect(url_for('camera'))
+
+    try:
+        cursor = mysql.connection.cursor()
+        cursor.execute(
+            "UPDATE registrations SET status = 'denied' WHERE id = %s",
+            (registration_id,)
+        )
+        mysql.connection.commit()
+        cursor.close()
+        flash('Plate denied successfully', 'success')
+    except Exception as e:
+        print(f"[ERROR] Denying plate: {str(e)}")
+        flash('Failed to deny plate', 'danger')
+
+    return redirect(url_for('admin_dashboard'))
+
 
 @app.route('/account')
 @login_required
