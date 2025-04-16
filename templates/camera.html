@@ -81,21 +81,40 @@
     document.getElementById("video-stream").src = "/static/no_stream.png";
   }
 
-  function capturePlate() {
-    fetch('/capture_plate')
-      .then(response => response.json())
-      .then(data => {
-        const plate = data.plate;
-        if (plate && plate !== "unknown") {
-          document.getElementById('license_plate').value = plate;
-          document.getElementById('registrationModal').style.display = 'block';
-        } else {
-          alert("No plate detected.");
-        }
-      })
-      .catch(error => {
-        console.error("Error capturing plate:", error);
-      });
+   function capturePlate() {
+    const video = document.getElementById("video-stream");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    // Check if the video is loaded before drawing to canvas
+    if (video && video.complete && video.naturalWidth > 0) {
+      fetch('/capture_plate')
+        .then(response => response.json())
+        .then(data => {
+          const plate = data.plate;
+          if (plate && plate !== "unknown") {
+            document.getElementById('license_plate').value = plate;
+
+            // --- capture snapshot from video ---
+            canvas.width = video.naturalWidth;
+            canvas.height = video.naturalHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const imageDataURL = canvas.toDataURL("image/jpeg"); // base64 image
+            document.getElementById('image_data').value = imageDataURL;
+
+            // show the modal
+            document.getElementById('registrationModal').style.display = 'block';
+          } else {
+            alert("No plate detected.");
+          }
+        })
+        .catch(error => {
+          console.error("Error capturing plate:", error);
+        });
+    } else {
+      alert("Camera stream not available. Please start the stream first.");
+    }
   }
 </script>
 
@@ -153,10 +172,11 @@
 
     <label>Your Email:</label><br>
     <input type="email" name="email" value="{{ current_user.email }}" readonly required><br>
+    <canvas id="canvas" style="display:none;"></canvas>
 
     <label>Your Phone:</label><br>
     <input type="text" name="phone" value="{{ current_user.phone }}" readonly required><br>
-
+    <input type="hidden" id="image_data" name="image_data">
     <button type="submit">Submit Registration</button>
     <button type="button" onclick="document.getElementById('registrationModal').style.display='none'">Cancel</button>
   </form>

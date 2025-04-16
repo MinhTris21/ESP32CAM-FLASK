@@ -135,20 +135,32 @@
                             <th>Email</th>
                             <th>Phone</th>
                             <th>Status</th>
+                            <th>Admin Note</th>
+                            <th>Captured Image</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for plate, captured_at, name, email, phone, status in registrations %}
-                        <tr>
-                            <td>{{ plate }}</td>
-                            <td>{{ captured_at.strftime("%Y-%m-d %H:%M:%S") }}</td>
-                            <td>{{ name }}</td>
-                            <td>{{ email }}</td>
-                            <td>{{ phone }}</td>
-                            <td>{{ status }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
+    {% for plate, captured_at, name, email, phone, status, note, image_data in registrations %}
+    <tr>
+        <td>{{ plate }}</td>
+        <td>{{ captured_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+        <td>{{ name }}</td>
+        <td>{{ email }}</td>
+        <td>{{ phone }}</td>
+        <td>{{ status }}</td>
+        <td>{{ note or 'No note' }}</td>
+        <td>
+            {% if image_data %}
+                <img src="data:image/jpeg;base64,{{ image_data }}" alt="Captured" style="max-width: 100px; max-height: 60px; border-radius: 5px;">
+            {% else %}
+                No image
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>
+
+
                 </table>
             </div>
             {% else %}

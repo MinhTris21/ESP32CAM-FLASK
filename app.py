@@ -15,11 +15,11 @@ import threading
 import time
 from flask import request, redirect, url_for
 from datetime import datetime
-
+import base64
 
 latest_plate = "unknown"
 
-ESP32_CAM_URL = "http://192.168.137.237/cam.mjpeg"
+ESP32_CAM_URL = "http://192.168.137.56/cam.mjpeg"
 app = Flask(__name__)
 app.config.from_object(Config)
 
@@ -174,19 +174,27 @@ def register_plate():
         data = request.form
         plate = data.get('license_plate')
         captured_at = datetime.now()
+        image_data_url = data.get('image_data')  # Expect base64 image data from client
 
-        # Pull info from current_user (Flask-Login)
+        # Get user info
         user_id = current_user.id
         name = current_user.username
         email = current_user.email
         phone = current_user.phone
 
-        # Insert into database
+        # Decode base64 image
+        if image_data_url and "," in image_data_url:
+            header, encoded = image_data_url.split(",", 1)
+            image_blob = base64.b64decode(encoded)
+        else:
+            image_blob = None  # Optional fallback
+
+        # Insert into DB
         cursor = mysql.connection.cursor()
-        cursor.execute(
-            "INSERT INTO registrations (user_id, license_plate, captured_at, name, email, phone) VALUES (%s, %s, %s, %s, %s, %s)",
-            (user_id, plate, captured_at, name, email, phone)
-        )
+        cursor.execute("""
+            INSERT INTO registrations (user_id, license_plate, captured_at, name, email, phone, image)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (user_id, plate, captured_at, name, email, phone, image_blob))
         mysql.connection.commit()
         cursor.close()
 
@@ -289,20 +297,33 @@ def deny_plate(registration_id):
     return redirect(url_for('admin_dashboard'))
 
 
+import base64
+
 @app.route('/account')
 @login_required
 def account():
     cursor = mysql.connection.cursor()
     cursor.execute("""
-        SELECT license_plate, captured_at, name, email, phone, status
+        SELECT license_plate, captured_at, name, email, phone, status, note, image
         FROM registrations
         WHERE user_id = %s
         ORDER BY captured_at DESC
     """, (current_user.id,))
-    registrations = cursor.fetchall()
+    results = cursor.fetchall()
     cursor.close()
 
+    # Convert image BLOBs to base64 strings
+    registrations = []
+    for row in results:
+        plate, captured_at, name, email, phone, status, note, image_blob = row
+        if image_blob:
+            image_base64 = base64.b64encode(image_blob).decode('utf-8')
+        else:
+            image_base64 = None
+        registrations.append((plate, captured_at, name, email, phone, status, note, image_base64))
+
     return render_template('account.html', registrations=registrations)
+
 
 @app.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
