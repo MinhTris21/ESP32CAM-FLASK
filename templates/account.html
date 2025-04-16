@@ -52,12 +52,12 @@
         /* Table styling to match the screenshot */
         .table-container {
             width: 100%;
-            max-width: 960px;
+            max-width: 100%;
             background-color: white;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            overflow-x: auto;
             margin-top: 1rem;
+            overflow-x: auto;
         }
 
         table {
@@ -94,16 +94,40 @@
         .nav a i {
             font-size: 1.2rem;
             margin-right: 0.5rem;
-            color: #ddd !important; /* Light grey for visibility against dark background */
+            color: #ddd !important;
         }
 
         .nav a.active i {
-            color: #fff !important; /* White for active state */
+            color: #fff !important;
         }
 
         .nav a:hover i {
-            color: #fff !important; /* White on hover */
+            color: #fff !important;
         }
+
+        /* Status badge styling */
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .status-pending {
+            background-color: #ffc107; /* Yellow */
+        }
+
+        .status-approved {
+    background-color: #28a745; /* Green */
+}
+        .status-denied {
+            background-color: #dc3545; /* Red */
+        }
+
     </style>
 </head>
 <body>
@@ -140,27 +164,27 @@
                         </tr>
                     </thead>
                     <tbody>
-    {% for plate, captured_at, name, email, phone, status, note, image_data in registrations %}
-    <tr>
-        <td>{{ plate }}</td>
-        <td>{{ captured_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
-        <td>{{ name }}</td>
-        <td>{{ email }}</td>
-        <td>{{ phone }}</td>
-        <td>{{ status }}</td>
-        <td>{{ note or 'No note' }}</td>
-        <td>
-            {% if image_data %}
-                <img src="data:image/jpeg;base64,{{ image_data }}" alt="Captured" style="max-width: 100px; max-height: 60px; border-radius: 5px;">
-            {% else %}
-                No image
-            {% endif %}
-        </td>
-    </tr>
-    {% endfor %}
-</tbody>
-
-
+                        {% for plate, captured_at, name, email, phone, status, note, image_data in registrations %}
+                        <tr>
+                            <td>{{ plate }}</td>
+                            <td>{{ captured_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+                            <td>{{ name }}</td>
+                            <td>{{ email }}</td>
+                            <td>{{ phone }}</td>
+                            <td>
+                                <span class="status-badge status-{{ status }}">{{ status }}</span>
+                            </td>
+                            <td>{{ note or 'No note' }}</td>
+                            <td>
+                                {% if image_data %}
+                                    <img src="data:image/jpeg;base64,{{ image_data }}" alt="Captured" style="max-width: 100px; max-height: 60px; border-radius: 5px;">
+                                {% else %}
+                                    No image
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
                 </table>
             </div>
             {% else %}

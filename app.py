@@ -16,10 +16,11 @@ import time
 from flask import request, redirect, url_for
 from datetime import datetime
 import base64
+import os
+
 
 latest_plate = "unknown"
-
-ESP32_CAM_URL = "http://192.168.137.56/cam.mjpeg"
+ESP32_CAM_URL = "http://192.168.137.68/cam.mjpeg"
 app = Flask(__name__)
 app.config.from_object(Config)
 
@@ -207,17 +208,67 @@ def register_plate():
         flash("Registration failed", "danger")
         return "Registration failed", 500
 
-@app.route('/forgot_password')
-def forgot_password():
-    flash('Forgot Password functionality is not yet implemented.', 'danger')
-    return redirect(url_for('login'))
-
-@app.route('/register')
+@app.route('/register', methods=['GET', 'POST'])
 def register():
-    flash('Registration functionality is not yet implemented.', 'danger')
-    return redirect(url_for('login'))
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        name = request.form['name']
+        email = request.form['email']
+        phone = request.form['phone']
+        role = request.form['role']
 
-# Admin dashboard route
+        # Hash the password
+        hashed_password = generate_password_hash(password)
+
+        try:
+            cursor = mysql.connection.cursor()
+            cursor.execute(
+                "INSERT INTO users (username, password, name, email, phone, role) VALUES (%s, %s, %s, %s, %s, %s)",
+                (username, hashed_password, name, email, phone, role)
+            )
+            mysql.connection.commit()
+            cursor.close()
+            flash('Registration successful! Please log in.', 'success')
+            return redirect(url_for('login'))
+        except Exception as e:
+            print(f"[ERROR] During registration: {str(e)}")
+            flash('Registration failed. Username may already exist.', 'danger')
+            return redirect(url_for('register'))
+
+    return render_template('register.html')
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form['email']
+        new_password = request.form['new_password']
+
+        # Hash the new password
+        hashed_password = generate_password_hash(new_password)
+
+        try:
+            cursor = mysql.connection.cursor()
+            cursor.execute(
+                "UPDATE users SET password = %s WHERE email = %s",
+                (hashed_password, email)
+            )
+            mysql.connection.commit()
+            affected_rows = cursor.rowcount
+            cursor.close()
+
+            if affected_rows == 0:
+                flash('No user found with that email address.', 'danger')
+                return redirect(url_for('forgot_password'))
+
+            flash('Password reset successful! Please log in with your new password.', 'success')
+            return redirect(url_for('login'))
+        except Exception as e:
+            print(f"[ERROR] During password reset: {str(e)}")
+            flash('Password reset failed.', 'danger')
+            return redirect(url_for('forgot_password'))
+
+    return render_template('forgot_password.html')
 @app.route('/admin_dashboard')
 @login_required
 def admin_dashboard():
@@ -227,26 +278,37 @@ def admin_dashboard():
 
     cursor = mysql.connection.cursor()
     cursor.execute("""
-        SELECT id, user_id, license_plate, captured_at, name, email, phone, status 
+        SELECT id, user_id, license_plate, captured_at, name, email, phone, status, note, image
         FROM registrations
+        ORDER BY captured_at DESC
     """)
-    registrations = cursor.fetchall()
+    results = cursor.fetchall()
     cursor.close()
 
-    # Convert tuple to dict for easier template access
-    registrations_list = [
-        {
-            'id': reg[0],
-            'user_id': reg[1],
-            'license_plate': reg[2],
-            'captured_at': reg[3],
-            'name': reg[4],
-            'email': reg[5],
-            'phone': reg[6],
-            'status': reg[7]
+    registrations_list = []
+    for row in results:
+        reg_id, user_id, plate, captured_at, name, email, phone, status, note, image_blob = row
+
+        # Convert image BLOB to base64
+        if image_blob:
+            image_base64 = base64.b64encode(image_blob).decode('utf-8')
+        else:
+            image_base64 = None
+
+        reg_dict = {
+            'id': reg_id,
+            'user_id': user_id,
+            'license_plate': plate,
+            'captured_at': captured_at,
+            'name': name,
+            'email': email,
+            'phone': phone,
+            'status': status,
+            'note': note,
+            'image_data': image_base64
         }
-        for reg in registrations
-    ]
+
+        registrations_list.append(reg_dict)
 
     return render_template('admin_dashboard.html', registrations=registrations_list)
 
@@ -272,32 +334,30 @@ def approve_plate(registration_id):
         flash('Failed to approve plate', 'danger')
 
     return redirect(url_for('admin_dashboard'))
-
-# Deny plate route
-@app.route('/deny_plate/<int:registration_id>', methods=['POST'])
+@app.route('/deny_plate_with_reason', methods=['POST'])
 @login_required
-def deny_plate(registration_id):
+def deny_plate_with_reason():
     if current_user.role != 'admin':
         flash('Access denied: Admins only', 'danger')
         return redirect(url_for('camera'))
 
+    registration_id = request.form.get('registration_id')
+    reason = request.form.get('reason')
+
     try:
         cursor = mysql.connection.cursor()
         cursor.execute(
-            "UPDATE registrations SET status = 'denied' WHERE id = %s",
-            (registration_id,)
+            "UPDATE registrations SET status = 'denied', note = %s WHERE id = %s",
+            (reason, registration_id)
         )
         mysql.connection.commit()
         cursor.close()
-        flash('Plate denied successfully', 'success')
+        flash('Plate denied with reason provided', 'danger')
     except Exception as e:
-        print(f"[ERROR] Denying plate: {str(e)}")
+        print(f"[ERROR] Denying plate with reason: {str(e)}")
         flash('Failed to deny plate', 'danger')
 
     return redirect(url_for('admin_dashboard'))
-
-
-import base64
 
 @app.route('/account')
 @login_required
@@ -348,7 +408,7 @@ def edit_profile():
     cur.execute("SELECT name, email, phone FROM users WHERE id=%s", (current_user.id,))
     user = cur.fetchone()
     cur.close()
-
     return render_template('edit_profile.html', user=user)
+
 if __name__ == '__main__':
     app.run(debug=True)

@@ -10,12 +10,12 @@
         /* Table styling to match the camera/account views */
         .table-container {
             width: 100%;
-            max-width: 960px;
+            max-width: 100%;
             background-color: white;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            overflow-x: auto;
             margin-top: 1rem;
+            overflow-x: auto;
         }
 
         table {
@@ -112,6 +112,68 @@
         .flash-message.danger {
             background-color: #dc3545;
         }
+
+        #denyModal,
+        #modalOverlay {
+            display: none; /* Hide by default */
+        }
+
+        /* Modal styles */
+        #denyModal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        #modalOverlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        #denyModal textarea {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 1rem;
+        }
+
+        #denyModal button {
+            margin-right: 0.5rem;
+        }
+
+        /* Status badge styling */
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .status-pending {
+            background-color: #ffc107; /* Yellow */
+        }
+
+        .status-approved {
+            background-color: #28a745; /* Green */
+        }
+
+        .status-denied {
+            background-color: #dc3545; /* Red */
+        }
     </style>
 </head>
 <body>
@@ -152,6 +214,8 @@
                             <th>Email</th>
                             <th>Phone</th>
                             <th>Status</th>
+                            <th>Admin Note</th>
+                            <th>Captured Image</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -163,15 +227,24 @@
                             <td>{{ registration.name }}</td>
                             <td>{{ registration.email }}</td>
                             <td>{{ registration.phone }}</td>
-                            <td>{{ registration.status }}</td>
+                            <td>
+                                <span class="status-badge status-{{ registration.status }}">{{ registration.status }}</span>
+                            </td>
+                            <td>{{ registration.note or '—' }}</td>
+                            <td>
+                                {% if registration.image_data %}
+                                    <img src="data:image/jpeg;base64,{{ registration.image_data }}" alt="Captured" style="max-width: 100px; max-height: 60px; border-radius: 5px;">
+                                {% else %}
+                                    No image
+                                {% endif %}
+                            </td>
                             <td class="action-buttons">
                                 {% if registration.status == 'pending' %}
                                 <form action="{{ url_for('approve_plate', registration_id=registration.id) }}" method="POST" style="display:inline;">
                                     <button type="submit" class="approve">Approve</button>
                                 </form>
-                                <form action="{{ url_for('deny_plate', registration_id=registration.id) }}" method="POST" style="display:inline;">
-                                    <button type="submit" class="deny">Deny</button>
-                                </form>
+                                <!-- Changed: Use a button to open the modal instead of submitting a form -->
+                                <button class="deny" onclick="openDenyModal({{ registration.id }})">Deny</button>
                                 {% else %}
                                 <span>{{ registration.status }}</span>
                                 {% endif %}
@@ -186,5 +259,33 @@
             {% endif %}
         </main>
     </div>
+
+    <!-- Modal Overlay -->
+    <div id="modalOverlay"></div>
+
+    <!-- Deny Modal -->
+    <div id="denyModal">
+        <h3>Deny Registration</h3>
+        <form method="POST" action="{{ url_for('deny_plate_with_reason') }}">
+            <input type="hidden" id="deny_registration_id" name="registration_id">
+            <label for="reason-textarea">Reason for denial:</label><br>
+            <textarea id="reason-textarea" name="reason" required></textarea><br>
+            <button type="submit" class="deny">Submit Reason</button>
+            <button type="button" onclick="closeDenyModal()">Cancel</button>
+        </form>
+    </div>
+
+    <script>
+        function openDenyModal(registrationId) {
+            document.getElementById('deny_registration_id').value = registrationId;
+            document.getElementById('denyModal').style.display = 'block';
+            document.getElementById('modalOverlay').style.display = 'block';
+        }
+
+        function closeDenyModal() {
+            document.getElementById('denyModal').style.display = 'none';
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+    </script>
 </body>
 </html>

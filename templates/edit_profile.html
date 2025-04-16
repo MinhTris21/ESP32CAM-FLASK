@@ -4,37 +4,36 @@
     <meta charset="UTF-8" />
     <title>Edit Profile</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Use the latest Font Awesome CSS CDN for reliability -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #e9eef5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-
-        .profile-container {
-            background: #ffffff;
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        /* Form container styling to match account.html */
+        .form-container {
             width: 100%;
-            max-width: 500px;
+            max-width: 960px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-top: 1rem;
+            padding: 2rem;
         }
 
         h2 {
-            margin-bottom: 25px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
             text-align: center;
             color: #333;
         }
 
+        /* Form styling */
         form label {
             display: block;
             margin: 15px 0 5px;
             font-weight: 600;
+            color: #333;
         }
 
         input[type="text"],
@@ -44,6 +43,8 @@
             border: 1px solid #ccc;
             border-radius: 10px;
             transition: border-color 0.3s ease;
+            font-size: 14px;
+            box-sizing: border-box;
         }
 
         input:focus {
@@ -76,29 +77,62 @@
             text-decoration: none;
             color: #4a90e2;
             font-weight: 500;
+            font-size: 14px;
         }
 
         .back-link:hover {
             text-decoration: underline;
         }
+
+        /* Ensure sidebar icons are visible */
+        .nav a i {
+            font-size: 1.2rem;
+            margin-right: 0.5rem;
+            color: #ddd !important; /* Light grey for visibility against dark background */
+        }
+
+        .nav a.active i {
+            color: #fff !important; /* White for active state */
+        }
+
+        .nav a:hover i {
+            color: #fff !important; /* White on hover */
+        }
     </style>
 </head>
 <body>
-    <div class="profile-container">
-        <h2>Edit Profile</h2>
-        <form method="POST">
-            <label>Name:</label>
-            <input type="text" name="name" value="{{ user[0] }}" required />
+    <div class="layout">
+        <!-- Sidebar (copied from account.html) -->
+        <aside class="sidebar">
+            <div class="logo">Dashboard</div>
+            <nav class="nav">
+                <a href="/camera"><i class="fas fa-camera"></i> <span>Camera</span></a>
+                <a href="/account"><i class="fas fa-user-circle"></i> <span>Account</span></a>
+                <a href="/edit_profile" class="active"><i class="fas fa-user-edit"></i> <span>Edit Profile</span></a>
+                <a href="/logout"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
+            </nav>
+            <div class="footer">Welcome, {{ current_user.username }}!</div>
+        </aside>
 
-            <label>Email:</label>
-            <input type="email" name="email" value="{{ user[1] }}" required />
+        <!-- Main content -->
+        <main class="main-content">
+            <h2>Edit Profile</h2>
 
-            <label>Phone:</label>
-            <input type="text" name="phone" value="{{ user[2] }}" required />
+            <div class="form-container">
+                <form method="POST">
+                    <label>Name:</label>
+                    <input type="text" name="name" value="{{ user[0] }}" required />
 
-            <button type="submit">Save Changes</button>
-        </form>
-        <a class="back-link" href="{{ url_for('camera') }}">← Back to Dashboard</a>
+                    <label>Email:</label>
+                    <input type="email" name="email" value="{{ user[1] }}" required />
+
+                    <label>Phone:</label>
+                    <input type="text" name="phone" value="{{ user[2] }}" required />
+
+                    <button type="submit">Save Changes</button>
+                </form>
+            </div>
+        </main>
     </div>
 </body>
 </html>

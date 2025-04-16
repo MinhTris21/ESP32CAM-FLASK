@@ -23,7 +23,7 @@ CREATE TABLE registrations (
     name VARCHAR(100),
     email VARCHAR(100),
     phone VARCHAR(20),
-    status ENUM('pending', 'approved', 'denied') DEFAULT 'pending',
+    status ENUM('', 'approved', 'denied') DEFAULT '',
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
