@@ -18,9 +18,6 @@ Data Persistence:
 License plate records stored via SQL for reliable access.
 
 💡 System Overview
-pgsql
-Copy
-Edit
 ESP32-CAM → (Wi-Fi) → Flask Server
          → Image → OpenCV → Tesseract OCR → SQL Database
                                      ↓
