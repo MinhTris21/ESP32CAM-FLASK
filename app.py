@@ -17,10 +17,12 @@ from flask import request, redirect, url_for
 from datetime import datetime
 import base64
 import os
+import MySQLdb
+from MySQLdb import Error
 
 
 latest_plate = "unknown"
-ESP32_CAM_URL = "http://192.168.137.68/cam.mjpeg"
+ESP32_CAM_URL = "http://192.168.137.134/cam.mjpeg"
 app = Flask(__name__)
 app.config.from_object(Config)
 
@@ -87,10 +89,6 @@ def login():
 
     return render_template('login.html')
 
-@app.route('/dashboard')
-@login_required
-def dashboard():
-    return render_template('dashboard.html', username=current_user.username, role=current_user.role)
 
 @app.route('/logout')
 @login_required
@@ -320,20 +318,42 @@ def approve_plate(registration_id):
         flash('Access denied: Admins only', 'danger')
         return redirect(url_for('camera'))
 
+    # Debug: Log the current_user.id and registration_id
+    print(f"[DEBUG] Approving plate: admin_id={current_user.id}, registration_id={registration_id}")
+
+    cursor = None
     try:
         cursor = mysql.connection.cursor()
+        # Update the registration status
         cursor.execute(
             "UPDATE registrations SET status = 'approved' WHERE id = %s",
             (registration_id,)
         )
+        # Log the action in admin_logs
+        cursor.execute(
+            "INSERT INTO admin_logs (admin_id, action, registration_id, details) VALUES (%s, %s, %s, %s)",
+            (current_user.id, 'approve', registration_id, 'Approved registration')
+        )
         mysql.connection.commit()
         cursor.close()
         flash('Plate approved successfully', 'success')
+    except MySQLdb.Error as e:
+        if cursor:
+            cursor.close()
+        mysql.connection.rollback()
+        error_msg = f"Failed to approve plate: MySQL Error: {str(e)}"
+        print(f"[ERROR] {error_msg}")
+        flash(error_msg, 'danger')
     except Exception as e:
-        print(f"[ERROR] Approving plate: {str(e)}")
-        flash('Failed to approve plate', 'danger')
+        if cursor:
+            cursor.close()
+        mysql.connection.rollback()
+        error_msg = f"Failed to approve plate: Unexpected error: {str(e)}"
+        print(f"[ERROR] {error_msg}")
+        flash(error_msg, 'danger')
 
     return redirect(url_for('admin_dashboard'))
+
 @app.route('/deny_plate_with_reason', methods=['POST'])
 @login_required
 def deny_plate_with_reason():
@@ -344,21 +364,76 @@ def deny_plate_with_reason():
     registration_id = request.form.get('registration_id')
     reason = request.form.get('reason')
 
+    # Debug: Log the current_user.id and registration_id
+    print(f"[DEBUG] Denying plate: admin_id={current_user.id}, registration_id={registration_id}")
+
+    cursor = None
     try:
         cursor = mysql.connection.cursor()
+        # Update the registration status and note
         cursor.execute(
             "UPDATE registrations SET status = 'denied', note = %s WHERE id = %s",
             (reason, registration_id)
         )
+        # Log the action in admin_logs
+        cursor.execute(
+            "INSERT INTO admin_logs (admin_id, action, registration_id, details) VALUES (%s, %s, %s, %s)",
+            (current_user.id, 'deny', registration_id, f'Denied registration with reason: {reason}')
+        )
         mysql.connection.commit()
         cursor.close()
         flash('Plate denied with reason provided', 'danger')
+    except MySQLdb.Error as e:
+        if cursor:
+            cursor.close()
+        mysql.connection.rollback()
+        error_msg = f"Failed to deny plate: MySQL Error: {str(e)}"
+        print(f"[ERROR] {error_msg}")
+        flash(error_msg, 'danger')
     except Exception as e:
-        print(f"[ERROR] Denying plate with reason: {str(e)}")
-        flash('Failed to deny plate', 'danger')
+        if cursor:
+            cursor.close()
+        mysql.connection.rollback()
+        error_msg = f"Failed to deny plate: Unexpected error: {str(e)}"
+        print(f"[ERROR] {error_msg}")
+        flash(error_msg, 'danger')
 
     return redirect(url_for('admin_dashboard'))
 
+# Route for Admin Logs
+@app.route('/admin_logs', methods=['GET'])
+@login_required
+def admin_logs():
+    if current_user.role != 'admin':
+        flash('Access denied: Admins only', 'danger')
+        return redirect(url_for('camera'))
+
+    cursor = None
+    try:
+        # Use DictCursor to return results as dictionaries
+        cursor = mysql.connection.cursor(cursorclass=MySQLdb.cursors.DictCursor)
+        cursor.execute(
+            "SELECT al.id, al.admin_id, u.username, al.action, al.registration_id, al.details, al.created_at "
+            "FROM admin_logs al JOIN users u ON al.admin_id = u.id "
+            "ORDER BY al.created_at ASC"
+        )
+        logs = cursor.fetchall()
+        cursor.close()
+        return render_template('admin_logs.html', logs=logs)
+    except MySQLdb.Error as e:
+        if cursor:
+            cursor.close()
+        error_msg = f"Failed to load admin logs: MySQL Error: {str(e)}"
+        print(f"[ERROR] {error_msg}")
+        flash(error_msg, 'danger')
+        return render_template('admin_logs.html', logs=[])
+    except Exception as e:
+        if cursor:
+            cursor.close()
+        error_msg = f"Failed to load admin logs: Unexpected error: {str(e)}"
+        print(f"[ERROR] {error_msg}")
+        flash(error_msg, 'danger')
+        return render_template('admin_logs.html', logs=[])
 @app.route('/account')
 @login_required
 def account():

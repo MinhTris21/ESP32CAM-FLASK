@@ -94,7 +94,7 @@ nav ul li {
 nav ul li a {
     text-decoration: none;
     font-size: 18px;
-    color: #007bff;
+    color: #4a4a8a;
     transition: 0.2s;
 }
 
@@ -373,7 +373,7 @@ body, html {
 }
 
 .btn-green { background-color: #28a745; }
-.btn-blue { background-color: #007bff; }
+.btn-blue { background-color: #4a4a8a; }
 .btn-red { background-color: #dc3545; }
 
 .btn:hover {

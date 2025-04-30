@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Logs</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <style>
+        /* Table styling to match the camera/account views */
+        .table-container {
+            width: 100%;
+            max-width: 100%;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-top: 1rem;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 14px;
+        }
+
+        td {
+            font-size: 14px;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        /* Ensure sidebar icons are visible */
+        .nav a i {
+            font-size: 1.2rem;
+            margin-right: 0.5rem;
+            color: #ddd !important;
+        }
+
+        .nav a.active i {
+            color: #fff !important;
+        }
+
+        .nav a:hover i {
+            color: #fff !important;
+        }
+
+        /* Action buttons */
+        .action-buttons form {
+            display: inline;
+        }
+
+        .action-buttons button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            margin-right: 0.5rem;
+        }
+
+        .action-buttons .approve {
+            background-color: #28a745; /* Green */
+        }
+
+        .action-buttons .deny {
+            background-color: #dc3545; /* Red */
+        }
+
+        .action-buttons button:hover {
+            opacity: 0.9;
+        }
+
+        /* Flash message styling */
+        .flash-messages {
+            width: 100%;
+            max-width: 960px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .flash-message {
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            color: white;
+        }
+
+        .flash-message.success {
+            background-color: #28a745;
+        }
+
+        .flash-message.danger {
+            background-color: #dc3545;
+        }
+
+        #denyModal,
+        #modalOverlay {
+            display: none; /* Hide by default */
+        }
+
+        /* Modal styles */
+        #denyModal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        #modalOverlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        #denyModal textarea {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 1rem;
+        }
+
+        #denyModal button {
+            margin-right: 0.5rem;
+        }
+
+        /* Status badge styling */
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .status-pending {
+            background-color: #ffc107; /* Yellow */
+        }
+
+        .status-approved {
+            background-color: #28a745; /* Green */
+        }
+
+        .status-denied {
+            background-color: #dc3545; /* Red */
+        }
+
+        /* Image status overlay */
+        .image-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .image-status {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        .footer {
+            font-size: 1.2rem; /* You can increase this value as needed */
+            font-weight: bold; /* Optional for emphasis */
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="logo">Admin Dashboard</div>
+            <nav class="nav">
+                <a href="/admin_dashboard"><i class="fas fa-shield-alt"></i>Registrations</a>
+                <a href="/admin_logs" class="active"><i class="fas fa-history"></i> Admin Logs</a>
+                <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </nav>
+            <div class="footer">Welcome, {{ current_user.username }}!</div>
+        </aside>
+
+        <main class="main-content">
+            <h2>Admin Action Logs</h2>
+            {% if logs %}
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ord</th>
+                            <th>Admin</th>
+                            <th>Action</th>
+                            <th>Registration ID</th>
+                            <th>Details</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td>{{ log.id }}</td>
+                            <td>{{ log.username }}</td>
+                            <td>{{ log.action }}</td>
+                            <td>{{ log.registration_id }}</td>
+                            <td>{{ log.details }}</td>
+                            <td>{{ log.created_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p>No admin actions logged yet.</p>
+            {% endif %}
+        </main>
+    </div>
+</body>
+</html>

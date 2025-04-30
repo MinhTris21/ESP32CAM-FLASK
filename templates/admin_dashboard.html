@@ -174,15 +174,81 @@
         .status-denied {
             background-color: #dc3545; /* Red */
         }
+
+        /* Image status overlay */
+        .image-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .image-status {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        /* Search bar styling */
+        .search-container {
+            width: 100%;
+            max-width: 960px; /* Match table container width */
+            margin: 0 auto 0.5rem auto; /* Reduced margin for tighter integration */
+            text-align: left; /* Align with table */
+        }
+
+        .search-container .input-group {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .search-container input[type="text"] {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem; /* Adjusted padding for icon */
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            outline: none;
+            box-sizing: border-box;
+            background: #fff;
+        }
+
+        .search-container .input-group i {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+            font-size: 1rem;
+        }
+
+        .search-container input[type="text"]::placeholder {
+            color: #aaa;
+        }
+
+        .search-container input[type="text"]:focus {
+            border-color: #4a4a8a;
+        }
+        .footer {
+            font-size: 1.rem; /* You can increase this value as needed */
+            font-weight: bold; /* Optional for emphasis */
+        }
     </style>
 </head>
 <body>
     <div class="layout">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="logo">Dashboard</div>
+            <div class="logo">Admin Dashboard</div>
             <nav class="nav">
-                <a href="/admin_dashboard" class="active"><i class="fas fa-shield-alt"></i> Admin Dashboard</a>
+                <a href="/admin_dashboard" class="active"><i class="fas fa-shield-alt"></i>Registrations</a>
+                <a href="/admin_logs"><i class="fas fa-history"></i> Admin Logs</a>
                 <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </nav>
             <div class="footer">Welcome, {{ current_user.username }}!</div>
@@ -190,7 +256,7 @@
 
         <!-- Main content -->
         <main class="main-content">
-            <h2>Admin Dashboard - Plate Registrations</h2>
+            <h2>Plate Registrations</h2>
 
             <!-- Flash messages -->
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -204,8 +270,16 @@
             {% endwith %}
 
             {% if registrations %}
+            <!-- Search bar -->
+            <div class="search-container">
+                <div class="input-group">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="plateSearch" placeholder="Search by License Plate..." onkeyup="searchPlates()">
+                </div>
+            </div>
+
             <div class="table-container">
-                <table>
+                <table id="registrationsTable">
                     <thead>
                         <tr>
                             <th>License Plate</th>
@@ -233,7 +307,10 @@
                             <td>{{ registration.note or '—' }}</td>
                             <td>
                                 {% if registration.image_data %}
-                                    <img src="data:image/jpeg;base64,{{ registration.image_data }}" alt="Captured" style="max-width: 100px; max-height: 60px; border-radius: 5px;">
+                                    <div class="image-container">
+                                        <img src="data:image/jpeg;base64,{{ registration.image_data }}" alt="Captured" style="max-width: 100px; max-height: 60px; border-radius: 5px;">
+                                        <span class="image-status">{{ registration.status }}</span>
+                                    </div>
                                 {% else %}
                                     No image
                                 {% endif %}
@@ -243,7 +320,6 @@
                                 <form action="{{ url_for('approve_plate', registration_id=registration.id) }}" method="POST" style="display:inline;">
                                     <button type="submit" class="approve">Approve</button>
                                 </form>
-                                <!-- Changed: Use a button to open the modal instead of submitting a form -->
                                 <button class="deny" onclick="openDenyModal({{ registration.id }})">Deny</button>
                                 {% else %}
                                 <span>{{ registration.status }}</span>
@@ -285,6 +361,20 @@
         function closeDenyModal() {
             document.getElementById('denyModal').style.display = 'none';
             document.getElementById('modalOverlay').style.display = 'none';
+        }
+
+        function searchPlates() {
+            const input = document.getElementById('plateSearch').value.toLowerCase();
+            const table = document.getElementById('registrationsTable');
+            const rows = table.getElementsByTagName('tr');
+
+            for (let i = 1; i < rows.length; i++) {
+                const licensePlateCell = rows[i].getElementsByTagName('td')[0];
+                if (licensePlateCell) {
+                    const licensePlate = licensePlateCell.textContent || licensePlateCell.innerText;
+                    rows[i].style.display = licensePlate.toLowerCase().includes(input) ? '' : 'none';
+                }
+            }
         }
     </script>
 </body>
