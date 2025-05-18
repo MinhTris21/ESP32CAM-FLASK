@@ -21,12 +21,14 @@ An embedded system that detects and registers vehicle license plates using the E
 - **Data Persistence:**  
   License plate records stored via SQL for reliable access.
 
----
+-----------------------
 
 ## 💡 System Overview
+- **1** Login as User/Admin
+- **2** Captured number plates and registing
+- **3** Approved/Denied by Administrator permission
 
-
----
+--------------------
 
 ## 🛠 Technologies
 
