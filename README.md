@@ -1,46 +1,39 @@
+# 🚗 License Plate Recognition System Using ESP32-CAM
 
-Student ID: 21200363
-Major: Embedded Systems & Computer Engineering
-This project develops an automated system for detecting and registering vehicle license plates using the ESP32-CAM. The system captures images, processes them to extract license plate numbers, and stores the data via SQL workbench
+An embedded system that detects and registers vehicle license plates using the ESP32-CAM. Captured images are processed with OCR and stored in a structured database, all managed through a lightweight Flask web interface.
 
-Real-Time Image Capture: Captures high-quality images using the ESP32-CAM's OV2640 camera module.
+---
 
-License Plate Recognition: Uses image processing and OCR (via Tesseract) to detect and extract license plate numbers accurately.
+## 🔧 Key Features
 
-Web-Based Registration: A Python Flask web app provides an interface to display, store, and manage license plate data.
+- **Real-Time Image Capture:**  
+  ESP32-CAM (OV2640) captures images on demand.
 
-Scalable Design: Combines lightweight processing on the ESP32-CAM with server-side computation for efficiency.
+- **License Plate Detection:**  
+  OpenCV and Tesseract OCR extract plate numbers from images.
 
-Data Storage: Integrates SQL for persistent storage of license plate records.
+- **Web-Based Interface:**  
+  Flask app displays, stores, and manages plate data.
 
-🛠️ Technologies Used
+- **Efficient Architecture:**  
+  ESP32 handles image capture; server performs processing and storage.
 
-Hardware: ESP32-CAM microcontroller
+- **Data Persistence:**  
+  License plate records stored via SQL for reliable access.
 
-Programming Languages:
+-----------------------
 
-C++ (for ESP32-CAM firmware)
+## 💡 System Overview
+- **1** Login as User/Admin
+- **2** Captured number plates and registing
+- **3** Approved/Denied by Administrator permission
 
-Python (for Flask web app and OCR processing)
+--------------------
 
-Frameworks & Libraries:
+## 🛠 Technologies
 
-Python Flask (web framework)
-
-OpenCV (image processing)
-
-Tesseract OCR (text extraction)
-
-SQL workbench (database)
-
-Communication: Wi-Fi for real-time data transfer between ESP32-CAM and Flask server
-
-📋 System Architecture
-
-ESP32-CAM: Captures images and performs initial processing (e.g., grayscale conversion, edge detection).
-
-Image Transmission: Sends processed images to the Flask server over Wi-Fi.
-
-Flask Server: Uses OpenCV and Tesseract OCR to extract license plate numbers and store them in SQLite.
-
-Web Interface: Displays detected plates and allows users to manage records (view, edit, delete).
+- **Hardware:** ESP32-CAM (OV2640)
+- **Languages:** C++ (ESP32), Python (Flask & processing)
+- **Libraries:** OpenCV, Tesseract OCR
+- **Database:** SQLite via SQL Workbench
+- **Communication:** Wi-Fi (ESP32 ↔ Server)
