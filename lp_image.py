@@ -1,7 +1,7 @@
 from PIL import Image
 import cv2
 import torch
-import math 
+import math
 import function.utils_rotate as utils_rotate
 from IPython.display import display
 import os
@@ -34,7 +34,7 @@ else:
         x = int(plate[0]) # xmin
         y = int(plate[1]) # ymin
         w = int(plate[2] - plate[0]) # xmax - xmin
-        h = int(plate[3] - plate[1]) # ymax - ymin  
+        h = int(plate[3] - plate[1]) # ymax - ymin
         crop_img = img[y:y+h, x:x+w]
         cv2.rectangle(img, (int(plate[0]),int(plate[1])), (int(plate[2]),int(plate[3])), color = (0,0,225), thickness = 2)
         cv2.imwrite("crop.jpg", crop_img)

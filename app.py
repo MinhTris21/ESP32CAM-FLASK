@@ -1,3 +1,4 @@
+#DEMO NGAY 18/05/2025
 from flask import Flask, render_template, redirect, url_for, request, flash, jsonify
 from flask_mysqldb import MySQL
 from flask_bcrypt import Bcrypt
@@ -22,7 +23,7 @@ from MySQLdb import Error
 
 
 latest_plate = "unknown"
-ESP32_CAM_URL = "http://192.168.137.134/cam.mjpeg"
+ESP32_CAM_URL = "http://192.168.137.31/cam.mjpeg"
 app = Flask(__name__)
 app.config.from_object(Config)
 
@@ -104,58 +105,133 @@ def video_feed():
     return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
-# --- FUNCTION TO STREAM FRAMES AND DETECT PLATES ---
+# --- FUNCTION TO STREAM FRAMES AND DETECT PLATES --- LOW FPS, HIGH QUALITY
+# def gen_frames():
+#     global latest_plate
+#
+#     # Load models once here
+#     yolo_LP_detect = torch.hub.load('yolov5', 'custom', path='model/LP_detector.pt', force_reload=True, source='local')  # Updated model path and added force_reload=True
+#     yolo_license_plate = torch.hub.load('yolov5', 'custom', path='model/LP_ocr.pt', force_reload=True, source='local')  # Updated model path and added force_reload=True
+#     yolo_license_plate.conf = 0.60
+#
+#     stream = requests.get(ESP32_CAM_URL, stream=True)
+#     byte_data = b''
+#
+#     for chunk in stream.iter_content(chunk_size=1024):
+#         byte_data += chunk
+#         a = byte_data.find(b'\xff\xd8')  # JPEG start
+#         b = byte_data.find(b'\xff\xd9')  # JPEG end
+#
+#         if a != -1 and b != -1 and b > a:
+#             jpg = byte_data[a:b + 2]
+#             byte_data = byte_data[b + 2:]
+#
+#             frame = cv2.imdecode(np.frombuffer(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
+#             if frame is None:
+#                 continue
+#
+#             # Detect plates
+#             plates = yolo_LP_detect(frame, size=416)
+#             list_plates = plates.pandas().xyxy[0].values.tolist()
+#
+#             for plate in list_plates:
+#                 x, y, w, h = int(plate[0]), int(plate[1]), int(plate[2] - plate[0]), int(plate[3] - plate[1])
+#                 crop_img = infantilizing = frame[y:y + h, x:x + w]
+#                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 225), 2)
+#
+#                 for cc in range(2):
+#                     for ct in range(2):
+#                         lp = helper.read_plate(yolo_license_plate, utils_rotate.deskew(crop_img, cc, ct))
+#                         if lp != "unknown":
+#                             latest_plate = lp  # ✅ Save most recent plate
+#                             print(f"[STREAM DETECTED] {latest_plate}")
+#                             cv2.putText(frame, lp, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+#                             break
+#
+#             # Encode and stream frame
+#             ret, buffer = cv2.imencode('.jpg', frame)
+#             if not ret:
+#                 continue
+#             frame = buffer.tobytes()
+#             yield (b'--frame\r\n'
+#                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+#HIGH FPS, LOW QUALITY, BEST OPTION 18052025
 def gen_frames():
     global latest_plate
 
     # Load models once here
-    yolo_LP_detect = torch.hub.load('yolov5', 'custom', path='model/LP_detector_nano_61.pt', source='local')
-    yolo_license_plate = torch.hub.load('yolov5', 'custom', path='model/LP_ocr_nano_62.pt', source='local')
+    yolo_LP_detect = torch.hub.load('yolov5', 'custom', path='model/LP_detector.pt', force_reload=True, source='local')
+    yolo_license_plate = torch.hub.load('yolov5', 'custom', path='model/LP_ocr.pt', force_reload=True, source='local')
     yolo_license_plate.conf = 0.60
 
-    stream = requests.get(ESP32_CAM_URL, stream=True)
+    stream = requests.get(ESP32_CAM_URL, stream=True, timeout=5)  # Added timeout to handle network issues
     byte_data = b''
 
-    for chunk in stream.iter_content(chunk_size=1024):
-        byte_data += chunk
-        a = byte_data.find(b'\xff\xd8')  # JPEG start
-        b = byte_data.find(b'\xff\xd9')  # JPEG end
+    frame_count = 0
+    frame_skip = 2  # Process every 2nd frame
+    max_plates = 3  # Limit number of plates processed per frame to stabilize processing time
 
-        if a != -1 and b != -1 and b > a:
-            jpg = byte_data[a:b + 2]
-            byte_data = byte_data[b + 2:]
+    while True:  # Use while loop for better control over stream errors
+        try:
+            for chunk in stream.iter_content(chunk_size=2048):  # Increased chunk size for faster data retrieval
+                byte_data += chunk
+                a = byte_data.find(b'\xff\xd8')  # JPEG start
+                b = byte_data.find(b'\xff\xd9')  # JPEG end
 
-            frame = cv2.imdecode(np.frombuffer(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
-            if frame is None:
-                continue
+                if a != -1 and b != -1 and b > a:
+                    jpg = byte_data[a:b + 2]
+                    byte_data = byte_data[b + 2:]
 
-            # Detect plates
-            plates = yolo_LP_detect(frame, size=640)
-            list_plates = plates.pandas().xyxy[0].values.tolist()
+                    frame = cv2.imdecode(np.frombuffer(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
+                    if frame is None:
+                        continue
 
-            for plate in list_plates:
-                x, y, w, h = int(plate[0]), int(plate[1]), int(plate[2] - plate[0]), int(plate[3] - plate[1])
-                crop_img = frame[y:y + h, x:x + w]
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+                    # Resize to match common ESP32 resolution (adjust if known)
+                    frame = cv2.resize(frame, (640, 480), interpolation=cv2.INTER_AREA)
 
-                for cc in range(2):
-                    for ct in range(2):
-                        lp = helper.read_plate(yolo_license_plate, utils_rotate.deskew(crop_img, cc, ct))
-                        if lp != "unknown":
-                            latest_plate = lp  # ✅ Save most recent plate
-                            print(f"[STREAM DETECTED] {latest_plate}")
-                            cv2.putText(frame, lp, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
-                            break
+                    frame_count += 1
+                    if frame_count % frame_skip != 0:
+                        # Encode skipped frame with lower quality for speed
+                        ret, buffer = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+                        if not ret:
+                            continue
+                        frame_bytes = buffer.tobytes()
+                        yield (b'--frame\r\n'
+                               b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+                        continue
 
-            # Encode and stream frame
-            ret, buffer = cv2.imencode('.jpg', frame)
-            if not ret:
-                continue
-            frame = buffer.tobytes()
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+                    # Detect plates
+                    plates = yolo_LP_detect(frame, size=320)
+                    list_plates = plates.pandas().xyxy[0].values.tolist()[:max_plates]  # Limit to max_plates
 
+                    for plate in list_plates:
+                        x, y, w, h = int(plate[0]), int(plate[1]), int(plate[2] - plate[0]), int(plate[3] - plate[1])
+                        crop_img = frame[y:y + h, x:x + w]
+                        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 225), 2)
 
+                        for cc in range(2):
+                            for ct in range(2):
+                                lp = helper.read_plate(yolo_license_plate, utils_rotate.deskew(crop_img, cc, ct))
+                                if lp != "unknown":
+                                    latest_plate = lp
+                                    print(f"[STREAM DETECTED] {latest_plate}")
+                                    cv2.putText(frame, lp, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+                                    break
+
+                    # Encode processed frame with lower quality for speed
+                    ret, buffer = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+                    if not ret:
+                        continue
+                    frame_bytes = buffer.tobytes()
+                    yield (b'--frame\r\n'
+                           b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+
+        except (requests.exceptions.RequestException, ConnectionError):
+            print("Stream interrupted, attempting to reconnect...")
+            stream = requests.get(ESP32_CAM_URL, stream=True, timeout=5)
+            byte_data = b''
+            continue
 # --- CAPTURE LATEST PLATE ROUTE ---
 @app.route('/capture_plate')
 def capture_plate():
