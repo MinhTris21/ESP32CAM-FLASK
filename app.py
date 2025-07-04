@@ -23,7 +23,7 @@ from MySQLdb import Error
 
 
 latest_plate = "unknown"
-ESP32_CAM_URL = "http://192.168.137.31/cam.mjpeg"
+ESP32_CAM_URL = "http://192.168.137.98/cam.mjpeg"
 app = Flask(__name__)
 app.config.from_object(Config)
 

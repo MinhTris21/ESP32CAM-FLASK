@@ -1,0 +1,151 @@
+_wandb:
+    value:
+        cli_version: 0.20.1
+        m: []
+        python_version: 3.11.13
+        t:
+            "1":
+                - 1
+                - 2
+                - 3
+                - 5
+                - 12
+                - 41
+                - 49
+                - 53
+                - 105
+            "2":
+                - 1
+                - 2
+                - 3
+                - 5
+                - 12
+                - 41
+                - 49
+                - 53
+                - 80
+                - 105
+            "3":
+                - 2
+                - 16
+                - 55
+                - 62
+            "4": 3.11.13
+            "5": 0.20.1
+            "12": 0.20.1
+            "13": linux-x86_64
+artifact_alias:
+    value: latest
+batch_size:
+    value: 32
+bbox_interval:
+    value: -1
+bucket:
+    value: ""
+cache:
+    value: ram
+cfg:
+    value: ""
+cos_lr:
+    value: false
+data:
+    value: /content/yolov5/data/LP_detection.yaml
+device:
+    value: ""
+entity:
+    value: null
+epochs:
+    value: 30
+evolve:
+    value: null
+evolve_population:
+    value: data/hyps
+exist_ok:
+    value: false
+freeze:
+    value:
+        - 0
+hyp:
+    value:
+        anchor_t: 4
+        box: 0.05
+        cls: 0.5
+        cls_pw: 1
+        copy_paste: 0
+        degrees: 0
+        fl_gamma: 0
+        fliplr: 0.5
+        flipud: 0
+        hsv_h: 0.015
+        hsv_s: 0.7
+        hsv_v: 0.4
+        iou_t: 0.2
+        lr0: 0.01
+        lrf: 0.01
+        mixup: 0
+        momentum: 0.937
+        mosaic: 1
+        obj: 1
+        obj_pw: 1
+        perspective: 0
+        scale: 0.5
+        shear: 0
+        translate: 0.1
+        warmup_bias_lr: 0.1
+        warmup_epochs: 3
+        warmup_momentum: 0.8
+        weight_decay: 0.0005
+image_weights:
+    value: false
+imgsz:
+    value: 320
+label_smoothing:
+    value: 0
+local_rank:
+    value: -1
+multi_scale:
+    value: false
+name:
+    value: exp
+ndjson_console:
+    value: false
+ndjson_file:
+    value: false
+noautoanchor:
+    value: false
+noplots:
+    value: false
+nosave:
+    value: false
+noval:
+    value: false
+optimizer:
+    value: SGD
+patience:
+    value: 100
+project:
+    value: runs/train
+quad:
+    value: false
+rect:
+    value: false
+resume:
+    value: false
+resume_evolve:
+    value: null
+save_dir:
+    value: runs/train/exp2
+save_period:
+    value: -1
+seed:
+    value: 0
+single_cls:
+    value: false
+sync_bn:
+    value: false
+upload_dataset:
+    value: false
+weights:
+    value: yolov5m.pt
+workers:
+    value: 8

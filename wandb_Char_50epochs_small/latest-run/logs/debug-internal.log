@@ -1,0 +1,16 @@
+{"time":"2025-06-24T02:26:43.012029395Z","level":"INFO","msg":"stream: starting","core version":"0.20.1","symlink path":"/content/yolov5/wandb/run-20250624_022642-9nued0v4/logs/debug-core.log"}
+{"time":"2025-06-24T02:26:43.197882632Z","level":"INFO","msg":"stream: created new stream","id":"9nued0v4"}
+{"time":"2025-06-24T02:26:43.197953472Z","level":"INFO","msg":"stream: started","id":"9nued0v4"}
+{"time":"2025-06-24T02:26:43.197959815Z","level":"INFO","msg":"writer: Do: started","stream_id":"9nued0v4"}
+{"time":"2025-06-24T02:26:43.198115698Z","level":"INFO","msg":"handler: started","stream_id":"9nued0v4"}
+{"time":"2025-06-24T02:26:43.198137783Z","level":"INFO","msg":"sender: started","stream_id":"9nued0v4"}
+{"time":"2025-06-24T02:26:43.429981802Z","level":"INFO","msg":"Starting system monitor"}
+{"time":"2025-06-24T03:29:55.252345133Z","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2025-06-24T03:29:55.252404083Z","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2025-06-24T03:29:56.254631078Z","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"uploading artifact run_9nued0v4_model","runtime_seconds":1.194777956,"subtasks":[{"desc":"best.pt","runtime_seconds":0.670696867,"progress":"5.5MB/40.5MB"}]}],"total_operations":1}}
+{"time":"2025-06-24T03:29:57.447523375Z","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-06-24T03:29:57.550808214Z","level":"INFO","msg":"stream: closing","id":"9nued0v4"}
+{"time":"2025-06-24T03:29:57.550824203Z","level":"INFO","msg":"handler: closed","stream_id":"9nued0v4"}
+{"time":"2025-06-24T03:29:57.550835687Z","level":"INFO","msg":"writer: Close: closed","stream_id":"9nued0v4"}
+{"time":"2025-06-24T03:29:57.550901359Z","level":"INFO","msg":"sender: closed","stream_id":"9nued0v4"}
+{"time":"2025-06-24T03:29:57.550912724Z","level":"INFO","msg":"stream: closed","id":"9nued0v4"}

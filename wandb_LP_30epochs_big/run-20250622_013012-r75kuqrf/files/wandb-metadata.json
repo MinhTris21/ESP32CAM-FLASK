@@ -1,0 +1,56 @@
+{
+  "os": "Linux-6.1.123+-x86_64-with-glibc2.35",
+  "python": "CPython 3.11.13",
+  "startedAt": "2025-06-22T01:30:13.144193Z",
+  "args": [
+    "--img",
+    "320",
+    "--batch",
+    "32",
+    "--epochs",
+    "30",
+    "--data",
+    "/content/yolov5/data/LP_detection.yaml",
+    "--weights",
+    "yolov5m.pt",
+    "--cache"
+  ],
+  "program": "/content/yolov5/train.py",
+  "codePath": "train.py",
+  "git": {
+    "remote": "https://github.com/ultralytics/yolov5",
+    "commit": "79c4c31d16692e188fb30de92f81f005b5b4f6c0"
+  },
+  "email": "tringuyenminh9696@gmail.com",
+  "root": "/content/yolov5",
+  "host": "fdbc25b4d936",
+  "executable": "/usr/bin/python3",
+  "codePathLocal": "train.py",
+  "cpu_count": 1,
+  "cpu_count_logical": 2,
+  "gpu": "Tesla T4",
+  "gpu_count": 1,
+  "disk": {
+    "/": {
+      "total": "120942624768",
+      "used": "45489778688"
+    }
+  },
+  "memory": {
+    "total": "13608370176"
+  },
+  "cpu": {
+    "count": 1,
+    "countLogical": 2
+  },
+  "gpu_nvidia": [
+    {
+      "name": "Tesla T4",
+      "memoryTotal": "16106127360",
+      "cudaCores": 2560,
+      "architecture": "Turing",
+      "uuid": "GPU-2ad43cb7-9bd8-4401-57e3-1d9b2c43dd76"
+    }
+  ],
+  "cudaVersion": "12.4"
+}
