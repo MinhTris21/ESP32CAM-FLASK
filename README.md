@@ -34,6 +34,6 @@ An embedded system that detects and registers vehicle license plates using the E
 
 - **Hardware:** ESP32-CAM (OV2640)
 - **Languages:** C++ (ESP32), Python (Flask & processing)
-- **Libraries:** OpenCV, Tesseract OCR
+- **Libraries:** OpenCV
 - **Database:** SQLite via SQL Workbench
 - **Communication:** Wi-Fi (ESP32 ↔ Server)
